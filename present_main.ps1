@@ -31,6 +31,31 @@ if (-not (pip show streamlit -ErrorAction SilentlyContinue)) {
     Write-Output "Streamlit is already installed."
 }
 
+# Install langchain if not installed
+if (-not (pip show langchain -ErrorAction SilentlyContinue)) {
+    Write-Output "Installing Langchain..."
+    pip install langchain
+    pip install langchain_community
+} else {
+    Write-Output "Langchain is already installed."
+}
+
+# Install python-decouple if not installed
+if (-not (pip show python-decouple -ErrorAction SilentlyContinue)) {
+    Write-Output "Installing python-decouple..."
+    pip install python-decouple
+} else {
+    Write-Output "python-decouple is already installed."
+}
+
+# Install openai if not installed
+if (-not (pip show openai -ErrorAction SilentlyContinue)) {
+    Write-Output "Installing OpenAI..."
+    pip install openai
+} else {
+    Write-Output "OpenAI is already installed."
+}
+
 # Run the Streamlit application
 Write-Output "Running Streamlit application..."
 streamlit run front_end/main.py
