@@ -56,6 +56,34 @@ if (-not (pip show openai -ErrorAction SilentlyContinue)) {
     Write-Output "OpenAI is already installed."
 }
 
+
+# Install unstructured if not installed
+if (-not (pip show unstructured -ErrorAction SilentlyContinue)) {
+    Write-Output "Installing Unstructured..."
+    pip install unstructured
+    pip install "unstructured[pdf]"
+    pip install tiktoken
+    pip install faiss-cpu
+    #pip install faiss-gpu
+} else {
+    Write-Output "Unstructured is already installed."
+}
+
+if (-not (pip show google_auth_oauthlib -ErrorAction SilentlyContinue)) {
+    Write-Output "Installing google_auth_oauthlib..."
+    pip install google_auth_oauthlib
+    pip install jwt
+} else {
+    Write-Output "google_auth_oauthlib is already installed."
+}
+
+if (-not (pip show supabase -ErrorAction SilentlyContinue)) {
+    Write-Output "Installing supabase..."
+    pip install supabase
+} else {
+    Write-Output "supabase is already installed."
+}
+
 # Run the Streamlit application
 Write-Output "Running Streamlit application..."
 streamlit run front_end/main.py
