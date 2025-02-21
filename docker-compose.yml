@@ -1,0 +1,10 @@
+services:
+  frontend:
+    build: .
+    container_name: frontend-boti
+    ports:
+      - '8501:8501'
+
+networks:
+  boti-net:
+    external: true

@@ -1,0 +1,5 @@
+[theme]
+base = "dark"
+
+[secrets]
+files = [ "~/.streamlit/secrets.toml",]

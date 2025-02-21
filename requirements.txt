@@ -1,0 +1,12 @@
+streamlit 
+# langchain 
+# langchain_community
+# python-decouple
+# openai
+# unstructured
+# unstructured[pdf]
+# tiktoken
+# faiss-cpu
+# google_auth_oauthlib
+# jwt
+supabase
