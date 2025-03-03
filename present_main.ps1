@@ -84,6 +84,14 @@ if (-not (pip show supabase -ErrorAction SilentlyContinue)) {
     Write-Output "supabase is already installed."
 }
 
+
+if (-not (pip show requests -ErrorAction SilentlyContinue)) {
+    Write-Output "Installing requests..."
+    pip install requests
+} else {
+    Write-Output "requests is already installed."
+}
+
 # Run the Streamlit application
 Write-Output "Running Streamlit application..."
-streamlit run front_end/main.py
+streamlit run app.py

@@ -25,7 +25,7 @@ RUN pip install --upgrade pip && \
     supabase
 
 # Expose the port that Streamlit runs on
-EXPOSE 8501
+EXPOSE $PORT
 
 # Command to start Streamlit. Additional options like --server.enableCORS false ensure cross-origin requests work.
-CMD ["streamlit", "run", "front_end/main.py", "--server.enableCORS", "false"]
+CMD ["streamlit", "run", "front_end/main.py", "--server.port", "$PORT", "--server.enableCORS", "false"]
