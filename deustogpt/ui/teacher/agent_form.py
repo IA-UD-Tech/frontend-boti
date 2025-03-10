@@ -247,7 +247,6 @@ def create_new_agent(name, personality, uploaded_files, student_emails, temperat
             "error": str(e)
         }
 
-
 def show_edit_agent_form(agent_id: str):
     """
     Display form for editing an existing agent.
@@ -263,11 +262,35 @@ def show_edit_agent_form(agent_id: str):
     
     st.subheader(f"Editar Agente: {agent.name}")
     
-    # Form implementation similar to create but with pre-filled data
-    # (Implementation would be similar to show_create_agent_form with prefilled values)
-    
-    st.warning("La funcionalidad de edición está en desarrollo.")
-    
-    if st.button("← Volver"):
+    with st.form("edit_agent_form"):
+        # Campos que realmente existen en el agente
+        agent_name = st.text_input("Nombre del Agente", value=agent.name)
+        personality = st.text_area("Personalidad / Prompt", value=agent.personality, height=150)
+        
+        student_emails = "\n".join(agent.students) if agent.students else ""
+        student_emails = st.text_area("Correos electrónicos de estudiantes", value=student_emails, height=100)
+
+        submitted = st.form_submit_button("Guardar Cambios")
+
+        if submitted:
+            # Actualizamos los atributos existentes
+            agent.name = agent_name
+            agent.personality = personality
+            agent.students = [email.strip() for email in student_emails.split("\n") if email.strip()]
+            
+            # Actualizamos el agente en session_state; usamos get_by_teacher para actualizar la lista completa
+            updated_agents = []
+            for a in Agent.get_by_teacher(agent.created_by):
+                if a.id == agent.id:
+                    updated_agents.append(agent.__dict__)
+                else:
+                    updated_agents.append(a.__dict__)
+            st.session_state.created_agents = updated_agents
+            
+            st.success(f"¡Agente '{agent.name}' actualizado!")
+            st.session_state.editing_agent_id = None
+            st.rerun()
+
+    if st.button("Cancelar"):
         st.session_state.editing_agent_id = None
         st.rerun()

@@ -8,7 +8,7 @@ import logging
 from typing import List, Dict, Any, Optional, Tuple
 import streamlit as st
 
-from langchain.document_loaders import (
+from langchain_community.document_loaders import (
     UnstructuredFileLoader, 
     PyPDFLoader,
     TextLoader,

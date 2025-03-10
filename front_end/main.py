@@ -10,7 +10,7 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 
 # Imports for Google OAuth
 from google_auth_oauthlib.flow import Flow
@@ -25,7 +25,7 @@ class ChatApp:
     def __init__(self):
         self.setup_page()
         self.setup_decorations()
-        self.api_key = config("OPENAI_API_KEY")
+        self.api_key = config("OPENAI_API_KEY", default=os.getenv("OPENAI_API_KEY", ""))
         self.setup_chain()
         self.upload_dir = "uploaded_files"
         self.ensure_upload_dir()

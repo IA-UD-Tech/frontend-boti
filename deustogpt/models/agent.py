@@ -35,6 +35,7 @@ class Agent:
             st.session_state.created_agents = []
         
         st.session_state.created_agents.append(agent.__dict__)
+
         return agent
 
     @classmethod
@@ -52,10 +53,15 @@ class Agent:
     def get_by_teacher(cls, teacher_id):
         """Get all agents created by a specific teacher."""
         if "created_agents" not in st.session_state:
-            return []
-            
-        return [cls(**agent_data) for agent_data in st.session_state.created_agents 
-                if agent_data["created_by"] == teacher_id]
+            st.session_state.created_agents = []
+
+        agents = [
+            cls(**agent_data) for agent_data in st.session_state.created_agents 
+            if str(agent_data["created_by"]) == str(teacher_id)  # Asegurar coincidencia de tipos
+        ]
+
+        return agents  # Esta línea es la que faltaba
+
 
     @classmethod
     def get_by_student(cls, student_email):
