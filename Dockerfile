@@ -1,19 +1,31 @@
-FROM python:3.13.2-slim
+FROM python:3.8-slim
+
+# Set environment variables (can also be provided by Docker run or compose)
+ENV PORT=8501
 
 # Set working directory
 WORKDIR /app
 
-    
-# Install Python dependencies
-COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r requirements.txt
-
 # Copy the local code into the container
-COPY ./app /app
+COPY . /app
+
+# Install dependencies
+RUN pip install --upgrade pip && \
+    pip install streamlit \
+    langchain \
+    langchain_community \
+    python-decouple \
+    openai \
+    unstructured \
+    "unstructured[pdf]" \
+    tiktoken \
+    faiss-cpu \
+    google_auth_oauthlib \
+    jwt \
+    supabase
 
 # Expose the port that Streamlit runs on
-EXPOSE 8501
+EXPOSE $PORT
 
 # Command to start Streamlit. Additional options like --server.enableCORS false ensure cross-origin requests work.
-CMD ["streamlit", "run", "main.py", "--server.enableCORS", "false"]
+CMD ["streamlit", "run", "app.py", "--server.port", "$PORT", "--server.enableCORS", "false"]

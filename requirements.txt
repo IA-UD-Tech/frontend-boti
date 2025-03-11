@@ -1,12 +1,9 @@
-streamlit 
-# langchain 
-# langchain_community
-# python-decouple
-# openai
-# unstructured
-# unstructured[pdf]
-# tiktoken
-# faiss-cpu
-# google_auth_oauthlib
-# jwt
-supabase
+streamlit>=1.28.0
+langchain>=0.0.267
+openai>=0.28.0
+python-decouple>=3.8
+google-auth-oauthlib>=1.0.0
+plotly>=5.16.0
+pandas>=2.0.0
+faiss-cpu>=1.7.4
+unstructured>=0.10.0
