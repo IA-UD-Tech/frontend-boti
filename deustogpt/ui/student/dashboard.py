@@ -10,14 +10,15 @@ from deustogpt.models.agent import Agent
 from deustogpt.models.user import User
 from deustogpt.auth.google_auth import get_user_id
 from deustogpt.ui.student.agent_card import display_agent_card
-
+from deustogpt.auth.session import get_backend_user, get_current_user_name
 
 def show_student_dashboard():
     """Display the main dashboard for students with available AI agents."""
     user_email = st.session_state.user_email
-    user_id = get_user_id()
+    user_id = st.session_state.backend_user_id or get_user_id()
+    user_name = get_current_user_name()
     
-    st.header(f"Panel del Estudiante: {user_email}")
+    st.header(f"Panel del Estudiante: {user_name}")
     
     # Check if user is currently in a chat
     if st.session_state.current_agent_id:

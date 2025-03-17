@@ -3,7 +3,6 @@ google_auth.py
 DeustoGPT
 
 This module provides functions for handling Google OAuth authentication in Streamlit applications.
-Created by Diego Revilla on 03/03/2025
 """
 
 import os
@@ -15,6 +14,7 @@ import requests
 from google_auth_oauthlib.flow import Flow
 
 from deustogpt.config import OAUTH_REDIRECT_URI, DEUSTO_DOMAIN, OPENDEUSTO_DOMAIN
+from deustogpt.api.user_api import find_user_by_email, create_user, get_user
 
 
 def login_with_google(intended_role : str):
@@ -44,7 +44,6 @@ def login_with_google(intended_role : str):
         st.error(f"Error al iniciar sesión con Google: {str(e)}")
         return False
 
-
 def handle_oauth_callback(query_params):
     """
     Process OAuth callback from Google.
@@ -65,8 +64,6 @@ def handle_oauth_callback(query_params):
         else:
             code = query_params["code"]
 
-        st.write(f"DEBUG: Received auth code (first 5 chars): {code[:5]}...")
-
         flow = Flow.from_client_secrets_file(
             'client_secrets.json',
             scopes=["https://www.googleapis.com/auth/userinfo.profile", 
@@ -76,7 +73,6 @@ def handle_oauth_callback(query_params):
 
         # Exchange the authorization code for credentials
         token_data = flow.fetch_token(code=code)
-        st.write("DEBUG: Token exchange successful")
 
         # Save the token
         st.session_state.google_token = flow.credentials.token
@@ -96,6 +92,27 @@ def handle_oauth_callback(query_params):
                 st.error(f"Correo no autorizado. Solo se permiten dominios {DEUSTO_DOMAIN} y {OPENDEUSTO_DOMAIN}")
                 st.session_state.google_token = None
                 return False
+
+            # Register or retrieve user from backend
+            backend_user = find_user_by_email(email)
+            
+            if not backend_user:
+                # Create user if not found
+                name = user_info.get("name", email.split('@')[0])
+                picture_url = user_info.get("picture")
+                
+                backend_user = create_user(
+                    email=email,
+                    name=name,
+                    avatar_url=picture_url
+                )
+            
+            if backend_user:
+                # Store backend user data in session
+                st.session_state.backend_user_id = backend_user.get("id")
+                st.session_state.backend_user = backend_user
+            else:
+                st.warning("Could not sync with backend user database.")
 
         # Clear query parameters
         try:

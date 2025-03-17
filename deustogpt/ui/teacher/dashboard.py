@@ -6,10 +6,13 @@ import streamlit as st
 from deustogpt.utils.visualization import generate_sample_usage_data, create_usage_chart
 from deustogpt.models.agent import Agent
 from deustogpt.auth.google_auth import get_user_id
+from deustogpt.auth.session import get_backend_user, get_current_user_name
 
 def show_teacher_dashboard():
     """Display the teacher dashboard."""
-    st.header(f"Panel del Profesor: {st.session_state.user_email}")
+    user_name = get_current_user_name()
+    
+    st.header(f"Panel del Profesor: {user_name}")
     
     # Button for creating new agents
     if st.button("➕ Crear Nuevo Agente", use_container_width=True):
