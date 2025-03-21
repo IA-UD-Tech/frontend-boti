@@ -57,24 +57,45 @@ def show_header(user_email: str):
             st.markdown("## 🤖 DeustoGPT")
         
         with cols[1]:
+            # Create a flex container for user info and logout button
+            st.markdown("""
+            <div style="display:flex; align-items:center; justify-content:flex-end;">
+            """, unsafe_allow_html=True)
+            
             # Show user info with avatar if available
-            user_container = st.container()
-            with user_container:
-                if backend_user and backend_user.get("avatar_url"):
-                    avatar_url = backend_user.get("avatar_url")
-                    name = backend_user.get("name", user_email.split('@')[0])
-                    
-                    st.markdown(f"""
-                    <div style="display:flex; align-items:center; justify-content:flex-end;">
-                        <span style="margin-right:10px;">{name}</span>
-                        <img src="{avatar_url}" width="40" height="40" 
-                             style="border-radius:50%;" alt="User Avatar">
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    # Fallback to just email
-                    st.write(f"👤 {user_email}")
-                    
+            if backend_user and backend_user.get("avatar_url"):
+                avatar_url = backend_user.get("avatar_url")
+                name = backend_user.get("name", user_email.split('@')[0])
+                
+                st.markdown(f"""
+                <div style="display:flex; align-items:center; margin-right:15px;">
+                    <span style="margin-right:10px;">{name}</span>
+                    <img src="{avatar_url}" width="40" height="40" 
+                         style="border-radius:50%;" alt="User Avatar">
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                # Fallback to just email
+                st.markdown(f"""
+                <div style="margin-right:15px;">
+                    👤 {user_email}
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Close the container div
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Place the logout button in a centered container
+            st.markdown("""
+            <style>
+            div[data-testid="element-container"]:has(button#logout) {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 5px;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
             if st.button("Cerrar sesión", key="logout"):
                 # Clear session state and reload
                 for key in list(st.session_state.keys()):
