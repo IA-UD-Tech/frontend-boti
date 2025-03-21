@@ -2,6 +2,7 @@
 Student dashboard module - displays available agents and manages agent selection.
 """
 
+import os
 import streamlit as st
 import random
 from typing import List, Dict, Any, Optional
@@ -53,52 +54,53 @@ def display_available_agents(user_email: str):
             st.write("")  # Add spacing between cards
 
 
-def get_student_agents(user_email: str) -> List[Dict[str, Any]]:
+def get_student_agents(user_email):
     """
-    Get agents available to the student.
-    
-    Args:
-        user_email: Email of the student
-    
-    Returns:
-        List of agent data objects
+    Get agents available to a student.
     """
-    # Check for agents where student is subscribed
     available_agents = []
     
-    if "created_agents" in st.session_state:
-        for agent in st.session_state.created_agents:
-            if user_email in agent.get("students", []):
-                available_agents.append({
-                    "id": agent["id"],
-                    "name": agent["name"],
-                    "description": agent.get("personality", "")[:100] + "..." if agent.get("personality") and len(agent.get("personality", "")) > 100 else agent.get("personality", ""),
-                    "teacher": get_teacher_name(agent.get("created_by", "")),
-                    "last_used": get_last_used(agent["id"]),
-                    "icon": generate_agent_icon(agent["id"])
-                })
+    # Get agents the student is subscribed to via API
+    agents = Agent.get_by_student(user_email)
     
-    # If no agents found, create and load sample data
-    if not available_agents:
-        from deustogpt.utils.data_generator import generate_sample_agents, load_sample_data_to_session
-        
-        # This actually creates the sample agents in session state
-        num_agents, num_messages = load_sample_data_to_session()
-
-        # Now get the actual agents we just created
-        for agent in st.session_state.created_agents:
-            if user_email in agent.get("students", []) or True:  # For demo, show all agents
-                available_agents.append({
-                    "id": agent["id"],
-                    "name": agent["name"],
-                    "description": agent.get("personality", "")[:100] + "..." if agent.get("personality") and len(agent.get("personality", "")) > 100 else agent.get("personality", ""),
-                    "teacher": get_teacher_name(agent.get("created_by", "")),
-                    "last_used": get_last_used(agent["id"]),
-                    "icon": generate_agent_icon(agent["id"])
-                })
+    for agent in agents:
+        # Format agent data for display
+        available_agents.append({
+            "id": agent.id,
+            "name": agent.name,
+            "description": agent.personality[:100] + "..." if agent.personality and len(agent.personality) > 100 else agent.personality,
+            "teacher": get_teacher_name(agent.created_by),
+            "icon": generate_agent_icon(agent.id)
+        })
     
     return available_agents
 
+def render_student_dashboard():
+    """
+    Render the student dashboard.
+    """
+    # Get current user email
+    user_email = st.session_state.get("user_email", "")
+    
+    # Get agents available to the student
+    agents = get_student_agents(user_email)
+    
+    if not agents:
+        st.info("You don't have any agents available. Please contact your teacher.")
+        return
+    
+    # Display the agents in a grid
+    col1, col2 = st.columns(2)
+    
+    for i, agent in enumerate(agents):
+        with col1 if i % 2 == 0 else col2:
+            with st.container():
+                st.markdown(f"### {agent['name']}")
+                st.markdown(f"**By:** {agent['teacher']}")
+                st.markdown(agent['description'] or "No description")
+                if st.button("Chat", key=f"chat_btn_{agent['id']}"):
+                    st.session_state.selected_agent = agent['id']
+                    st.experimental_rerun()
 
 def get_teacher_name(teacher_id: str) -> str:
     """

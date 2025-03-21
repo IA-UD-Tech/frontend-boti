@@ -179,45 +179,31 @@ def validate_form(agent_name: str, personality: str) -> Optional[str]:
 
 def create_new_agent(name, personality, uploaded_files, student_emails, temperature, max_tokens, include_search, doc_service):
     """
-    Create a new agent with the provided information.
-    
-    Args:
-        name: Name of the agent
-        personality: Personality/prompt for the agent
-        uploaded_files: List of uploaded files
-        student_emails: Student email addresses
-        temperature: Temperature parameter for response generation
-        max_tokens: Maximum tokens for response generation
-        include_search: Whether to include web search capability
-        doc_service: Document service for processing files
-        
-    Returns:
-        Dict with success status, agent_id if successful, and error message if failed
+    Create a new agent with the provided information and subscribe students.
     """
     try:
-        # Get creator ID
         teacher_id = get_user_id()
         
         # Process student emails
         student_list = []
         if student_emails:
-            student_list = [email.strip() for email in student_emails.split("\n") if email.strip()]
-            
-        # Process files
+            student_list = [email.strip() for email in student_emails.split(',')]
+        
+        # Process uploaded files
         file_paths = []
         if uploaded_files:
             for file in uploaded_files:
                 file_path = doc_service.process_uploaded_file(file)
                 file_paths.append(file_path)
         
-        # Create advanced settings
+        # Advanced settings to store locally
         advanced_settings = {
             "temperature": temperature,
             "max_tokens": max_tokens,
             "include_search": include_search
         }
         
-        # Create the agent
+        # Create the agent using the API
         agent = Agent.create(
             name=name,
             personality=personality,
@@ -226,7 +212,7 @@ def create_new_agent(name, personality, uploaded_files, student_emails, temperat
             files=file_paths
         )
         
-        # Store advanced settings
+        # Store advanced settings in session state
         if "agent_settings" not in st.session_state:
             st.session_state.agent_settings = {}
             
@@ -240,8 +226,8 @@ def create_new_agent(name, personality, uploaded_files, student_emails, temperat
             "success": True,
             "agent_id": agent.id
         }
-        
     except Exception as e:
+        st.error(f"Error creating agent: {str(e)}")
         return {
             "success": False,
             "error": str(e)
