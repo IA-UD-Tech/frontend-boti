@@ -13,8 +13,8 @@ OAUTH_REDIRECT_URI = config("OAUTH_REDIRECT_URI", default="http://localhost:8501
 
 # Application settings
 UPLOAD_DIR = config("UPLOAD_DIR", default="uploaded_files")
-DEUSTO_DOMAIN = "@opendeusto.es"
-OPENDEUSTO_DOMAIN = "@deusto.es"
+DEUSTO_DOMAIN = "@deusto.es"
+OPENDEUSTO_DOMAIN = "@opendeusto.es"
 
 # Ensure upload directory exists
 def ensure_upload_dir(directory=UPLOAD_DIR):

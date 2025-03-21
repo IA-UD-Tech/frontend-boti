@@ -4,8 +4,9 @@ import json
 from typing import Dict, List, Any, Optional, Union
 from uuid import UUID
 
-# Use environment variable for API URL with a default value
 API_BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000/api/v1")
+if not API_BASE_URL.endswith("/api/v1"):
+    API_BASE_URL = API_BASE_URL.rstrip("/") + "/api/v1"
 
 class UserAPIException(Exception):
     """Exception raised for user API errors."""
@@ -46,17 +47,25 @@ def get_current_user(token: str) -> Dict:
     response = requests.get(url, headers=headers)
     return _handle_response(response)
 
-def create_user(email: str, password: str, full_name: str, role: str) -> Dict:
+def create_user(email: str, password: str, full_name: str, role: str, avatar_url: Optional[str] = None) -> Dict:
     """
     Create a new user.
     """
     url = f"{API_BASE_URL}/users/"
     payload = {
         "email": email,
-        "password": password,
-        "full_name": full_name,
+        "name": full_name,  # Changed from "full_name" to "name" to match backend schema
         "role": role
     }
+    
+    # Add avatar_url to payload if provided
+    if avatar_url:
+        payload["avatar_url"] = avatar_url
+        
+    # Add password if provided and not empty
+    if password:
+        payload["password"] = password
+        
     response = requests.post(url, json=payload)
     return _handle_response(response)
 
@@ -83,24 +92,36 @@ def find_user_by_email(email: str) -> Optional[Dict]:
     Returns:
         User data dictionary or None if not found
     """
-    url = f"{API_BASE_URL}/users/by-email/{email}"
+    # First, try the specific endpoint if available
     try:
+        url = f"{API_BASE_URL}/users/by-email"
+        params = {"email": email}
+        response = requests.get(url, params=params)
+        
+        # If successful, return the user data
+        if response.status_code == 200:
+            return response.json()
+            
+        # If not found specifically (404), proceed with fallback
+    except Exception as e:
+        print(f"Error in direct user lookup: {str(e)}")
+    
+    # Fallback: Check if the user exists by calling users/ endpoint
+    try:
+        url = f"{API_BASE_URL}/users/"
         response = requests.get(url)
-        if response.status_code == 404:
-            # User not found
-            return None
-        return _handle_response(response)
-    except UserAPIException:
-        # Try alternative approach by getting all users and filtering
-        # This is a fallback if the direct endpoint doesn't exist
-        try:
-            all_users = get_users(limit=1000)  # Assuming there aren't too many users
-            for user in all_users:
+        
+        if response.status_code == 200:
+            users = response.json()
+            # Find user with matching email
+            for user in users:
                 if user.get("email") == email:
                     return user
-            return None
-        except Exception:
-            return None
+    except Exception as e:
+        print(f"Error in fallback user lookup: {str(e)}")
+    
+    # If we get here, the user truly doesn't exist
+    return None
 
 def get_users(skip: int = 0, limit: int = 100) -> List[Dict]:
     """

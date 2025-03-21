@@ -103,8 +103,10 @@ def handle_oauth_callback(query_params):
                 
                 backend_user = create_user(
                     email=email,
-                    name=name,
-                    avatar_url=picture_url
+                    password="",  # Empty password for Google OAuth users
+                    full_name=name,
+                    avatar_url=picture_url,
+                    role=st.session_state.user_role
                 )
             
             if backend_user:

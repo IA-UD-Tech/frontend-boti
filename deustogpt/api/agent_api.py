@@ -87,9 +87,19 @@ def unsubscribe_student(agent_id: Union[str, UUID], student_email: str) -> Dict:
 def get_agents_by_student(student_email: str, 
                           skip: int = 0, limit: int = 100) -> List[Dict]:
     """Get all agents a student is subscribed to."""
+    # Make sure the URL matches exactly what's in the backend
     url = f"{API_BASE_URL}/agents/by-student/{student_email}"
     params = {"skip": skip, "limit": limit}
+    
+    # For debugging, print the URL
+    print(f"Calling API: {url} with params: {params}")
+    
     response = requests.get(url, params=params)
+    
+    # For debugging, print response details if there's an error
+    if response.status_code >= 400:
+        print(f"Error response: {response.status_code} - {response.text}")
+        
     return _handle_response(response)
 
 def get_agent_config(agent_id: Union[str, UUID]) -> Dict[str, str]:

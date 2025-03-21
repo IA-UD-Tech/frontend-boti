@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 import uuid
 import random
+import os
 import streamlit as st
 from typing import Any, Dict, List, Optional
 
@@ -131,8 +132,11 @@ class Agent:
     def get_by_student(cls, student_email):
         """Get all agents a student is subscribed to using the API."""
         try:
+            print(f"Fetching agents for student: {student_email}")
             agents_data = api_get_agents_by_student(student_email)
-            return [cls(
+
+            # Create Agent objects from the API response
+            agents = [cls(
                 id=agent_data.get("id"),
                 name=agent_data.get("name"),
                 description=agent_data.get("description"),
@@ -141,12 +145,29 @@ class Agent:
                 agent_type=agent_data.get("agent_type"),
                 created_at=agent_data.get("created_at")
             ) for agent_data in agents_data]
+
+            print(f"Found {len(agents)} agents for student {student_email}")
+            return agents
+
         except Exception as e:
             st.warning(f"Failed to get student's agents from API: {str(e)}")
+            print(f"API error details: {type(e).__name__}: {str(e)}")
+
             # Fallback to session state
             if "created_agents" in st.session_state:
-                return [cls(**agent_data) for agent_data in st.session_state.created_agents
+                fallback_agents = [cls(**agent_data) for agent_data in st.session_state.created_agents
                         if student_email in agent_data.get("students", [])]
+                print(f"Using fallback: found {len(fallback_agents)} agents in session state")
+                return fallback_agents
+
+            # If all else fails, generate some sample data in development
+            if os.getenv("ENVIRONMENT") == "development":
+                from deustogpt.utils.data_generator import generate_sample_agents
+                print("Generating sample agent data for development")
+                sample_data = generate_sample_agents(3)
+                sample_agents = [cls(**agent) for agent in sample_data]
+                return sample_agents
+
             return []
 
     def update(self, **kwargs):
