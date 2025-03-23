@@ -1,6 +1,7 @@
 import requests
 import os
 import json
+import streamlit as st
 from typing import Dict, List, Any, Optional, Union
 from uuid import UUID
 
@@ -41,15 +42,15 @@ def create_agent(name: str, description: str, created_by: str,
     response = requests.post(url, json=payload)
     return _handle_response(response)
 
-def get_agents(created_by: Optional[str] = None, 
-               skip: int = 0, limit: int = 100) -> List[Dict]:
-    """Get all agents, optionally filtered by creator."""
+# Update all API calls like this example:
+def get_agents(created_by: Optional[str] = None, skip: int = 0, limit: int = 100) -> List[Dict]:
     url = f"{API_BASE_URL}/agents/"
     params = {"skip": skip, "limit": limit}
     if created_by:
         params["created_by"] = created_by
-        
-    response = requests.get(url, params=params)
+    
+    headers = _get_auth_headers()
+    response = requests.get(url, params=params, headers=headers)
     return _handle_response(response)
 
 def get_agent_by_id(agent_id: Union[str, UUID]) -> Dict:
@@ -84,12 +85,27 @@ def unsubscribe_student(agent_id: Union[str, UUID], student_email: str) -> Dict:
     response = requests.delete(url, json=payload)
     return _handle_response(response)
 
-def get_agents_by_student(student_email: str, 
-                          skip: int = 0, limit: int = 100) -> List[Dict]:
+def _get_auth_headers():
+    """Get authentication headers for API requests."""
+    try:
+        import streamlit as st
+        # Get token from session state
+        if "google_token" in st.session_state:
+            return {"Authorization": f"Bearer {st.session_state.google_token}"}
+    except (ImportError, NameError, AttributeError):
+        # Handle case where streamlit isn't available or initialized
+        pass
+    return {}
+
+def get_agents_by_student(student_email: str, skip: int = 0, limit: int = 100) -> List[Dict]:
     """Get all agents a student is subscribed to."""
     url = f"{API_BASE_URL}/agents/by-student/{student_email}"
     params = {"skip": skip, "limit": limit}
-    response = requests.get(url, params=params)
+    
+    # Add authentication headers
+    headers = _get_auth_headers()
+    
+    response = requests.get(url, params=params, headers=headers)
     return _handle_response(response)
 
 def get_agent_config(agent_id: Union[str, UUID]) -> Dict[str, str]:

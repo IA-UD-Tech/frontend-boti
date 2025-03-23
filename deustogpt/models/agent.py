@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 import uuid
 import random
+import os
 import streamlit as st
 from typing import Any, Dict, List, Optional
 
@@ -131,22 +132,73 @@ class Agent:
     def get_by_student(cls, student_email):
         """Get all agents a student is subscribed to using the API."""
         try:
+            # Try API call first
             agents_data = api_get_agents_by_student(student_email)
             return [cls(
                 id=agent_data.get("id"),
                 name=agent_data.get("name"),
-                description=agent_data.get("description"),
+                description=agent_data.get("description", ""),
+                personality=agent_data.get("description", ""),  # Map correctly
                 created_by=agent_data.get("created_by"),
                 students=agent_data.get("students", []),
-                agent_type=agent_data.get("agent_type"),
-                created_at=agent_data.get("created_at")
+                created_at=agent_data.get("created_at"),
+                agent_type=agent_data.get("agent_type", "custom")
             ) for agent_data in agents_data]
+            
         except Exception as e:
+            import traceback
+            print(f"Error fetching student agents: {str(e)}")
+            print(traceback.format_exc())
             st.warning(f"Failed to get student's agents from API: {str(e)}")
-            # Fallback to session state
+            
+            # FALLBACK 1: Try to get all agents and filter locally
+            try:
+                all_agents = api_get_agents()  # Get all agents
+                student_agents = []
+                
+                for agent_data in all_agents:
+                    students = agent_data.get("students", [])
+                    if student_email in students:
+                        student_agents.append(cls(
+                            id=agent_data.get("id"),
+                            name=agent_data.get("name"),
+                            description=agent_data.get("description", ""),
+                            personality=agent_data.get("description", ""),
+                            created_by=agent_data.get("created_by"),
+                            students=students,
+                            created_at=agent_data.get("created_at"),
+                            agent_type=agent_data.get("agent_type", "custom")
+                        ))
+                
+                if student_agents:
+                    return student_agents
+            except Exception as fallback_error:
+                print(f"Fallback 1 failed: {str(fallback_error)}")
+            
+            # FALLBACK 2: Check session state for agents
             if "created_agents" in st.session_state:
+                print("Using session state fallback")
                 return [cls(**agent_data) for agent_data in st.session_state.created_agents
                         if student_email in agent_data.get("students", [])]
+            
+            # FALLBACK 3: Generate sample data in development mode
+            if os.getenv("ENVIRONMENT") == "development" or os.getenv("DEBUG") == "true":
+                print("Generating sample agent data for development")
+                # Create a few sample agents for the student
+                sample_agents = []
+                for i in range(1, 4):
+                    sample_agents.append(cls(
+                        id=f"sample-{i}",
+                        name=f"Sample Agent {i}",
+                        personality=f"This is a sample agent {i} for development mode.",
+                        created_by="system",
+                        students=[student_email],
+                        created_at=datetime.now().isoformat(),
+                        agent_type="custom"
+                    ))
+                return sample_agents
+            
+            # Last resort - empty list
             return []
 
     def update(self, **kwargs):

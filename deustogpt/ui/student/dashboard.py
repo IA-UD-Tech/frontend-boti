@@ -60,18 +60,35 @@ def get_student_agents(user_email):
     """
     available_agents = []
     
-    # Get agents the student is subscribed to via API
-    agents = Agent.get_by_student(user_email)
-    
-    for agent in agents:
-        # Format agent data for display
-        available_agents.append({
-            "id": agent.id,
-            "name": agent.name,
-            "description": agent.personality[:100] + "..." if agent.personality and len(agent.personality) > 100 else agent.personality,
-            "teacher": get_teacher_name(agent.created_by),
-            "icon": generate_agent_icon(agent.id)
-        })
+    try:
+        # Get agents the student is subscribed to via API
+        agents = Agent.get_by_student(user_email)
+        
+        for agent in agents:
+            # Format agent data for display
+            available_agents.append({
+                "id": agent.id,
+                "name": agent.name,
+                "description": agent.personality[:100] + "..." if agent.personality and len(agent.personality) > 100 else agent.personality,
+                "teacher": get_teacher_name(agent.created_by),
+                "icon": generate_agent_icon(agent.id)
+            })
+            
+    except Exception as e:
+        st.error(f"Error loading agents: {str(e)}")
+        # Fallback to local data if available
+        if "created_agents" in st.session_state:
+            for agent_data in st.session_state.created_agents:
+                if "students" in agent_data and user_email in agent_data["students"]:
+                    available_agents.append({
+                        "id": agent_data["id"],
+                        "name": agent_data["name"],
+                        "description": agent_data.get("description", "")[:100] + "..." 
+                                      if agent_data.get("description") and len(agent_data.get("description", "")) > 100 
+                                      else agent_data.get("description", ""),
+                        "teacher": get_teacher_name(agent_data.get("created_by")),
+                        "icon": generate_agent_icon(agent_data["id"])
+                    })
     
     return available_agents
 
