@@ -22,10 +22,11 @@ RUN pip install --upgrade pip && \
     faiss-cpu \
     google_auth_oauthlib \
     jwt \
-    supabase
+    supabase \
+    plotly
 
 # Expose the port that Streamlit runs on
 EXPOSE $PORT
 
 # Command to start Streamlit. Additional options like --server.enableCORS false ensure cross-origin requests work.
-CMD ["streamlit", "run", "app.py", "--server.port", "$PORT", "--server.enableCORS", "false"]
+CMD streamlit run app.py --server.port $PORT --server.enableCORS false
